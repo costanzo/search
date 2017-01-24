@@ -35,6 +35,7 @@ import util
 import time
 import search
 import searchAgents
+import copy
 
 class GoWestAgent(Agent):
     "An agent that goes West until it can't."
@@ -277,23 +278,17 @@ class CornersProblem(search.SearchProblem):
         self._expanded = 0 # Number of search nodes expanded
 
         "*** YOUR CODE HERE ***"
-        self.MyState = MyState(self.startingPosition, [(1,1), (1,top), (right, 1), (right, top)])
-        self._visitedlist = [self.startingPosition]
+        self.startState = MyState(self.startingPosition, [(1,1), (1,top), (right, 1), (right, top)])
 
     def getStartState(self):
         "Returns the start state (in your state space, not the full Pacman state space)"
         "*** YOUR CODE HERE ***"
-        return self.MyState.getStartPos()
+        return self.startState
 
     def isGoalState(self, state):
         "Returns whether this search state is a goal state of the problem"
         "*** YOUR CODE HERE ***"
-        if self.MyState.isGoal(state) and self.MyState.isLastOne():
-            return True
-        elif self.MyState.isGoal(state) and not self.MyState.isLastOne():
-            self.MyState.removeGoal(state)
-            self._visitedlist = []
-        return False
+        return state.isFinalState()
 
     def getSuccessors(self, state):
         """
@@ -311,7 +306,7 @@ class CornersProblem(search.SearchProblem):
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
             # Add a successor state to the successor list if the action is legal
             # Here's a code snippet for figuring out whether a new position hits a wall:
-            x,y = state
+            (x,y), gs = state.get()
             dx, dy = Actions.directionToVector(action)
             nextx, nexty = int(x + dx), int(y + dy)
             hitsWall = self.walls[nextx][nexty]
@@ -320,9 +315,7 @@ class CornersProblem(search.SearchProblem):
             "*** YOUR CODE HERE ***"
             if not hitsWall:
                 nextState = (nextx, nexty)
-                successors.append((nextState, action, 1))
-
-        self._visitedlist.append(state)
+                successors.append((MyState(nextState, copy.deepcopy(gs)), action, 1))
 
         self._expanded += 1
         return successors
@@ -341,22 +334,31 @@ class CornersProblem(search.SearchProblem):
         return len(actions)
 
 class MyState():
-    def __init__(self, startPos, dots):
-        self.start = startPos
+    def __init__(self, pacPos, dots):
+        self.pacPos = pacPos
         self.goals = []
         for pos in dots:
-            self.goals.append(pos)
+            if not pos == self.pacPos:
+                self.goals.append(pos)
 
-    def getStartPos(self):
-        return self.start
+    def __eq__(self, other):
+        if other.pacPos == self.pacPos and other.goals == self.goals:
+            return True
+        return False
 
-    def isGoal(self, state):
-        return self.goals.__contains__(state)
+    def __str__(self):
+        return str(self.pacPos) + str(self.goals)
 
-    def removeGoal(self, state):
-        self.goals.remove(state)
-    def isLastOne(self):
-        return len(self.goals) == 1
+    def __deepcopy__(self, memodict={}):
+        return MyState(self.pacPos, copy.deepcopy(self.goals))
+
+    def isFinalState(self):
+        if not self.goals:
+            return True
+        return False
+
+    def get(self):
+        return self.pacPos, self.goals
 
 
 
