@@ -84,35 +84,32 @@ def depthFirstSearch(problem):
     print "Start's successors:", problem.getSuccessors(problem.getStartState())
     """
     "*** YOUR CODE HERE ***"
+
     state = problem.getStartState()
+    queue = util.Stack()
+    queue.push([(state, None, 0)])
 
-    stack = util.Stack()
-    sequence = util.Stack()
-    pushRec = util.Stack()
+    while not queue.isEmpty():
+        states= queue.pop()
+        currentState, action, cost= states[-1]
+        if problem.isGoalState(currentState):
+            acs = []
+            for s, a, c in states:
+                if a:
+                    acs.append(a)
+            return acs
 
-    stack.push((state, None))
-    pushRec.push((state, None))
-    visited = []
-
-    while not stack.isEmpty():
-        (succ, action) = stack.pop()
-        visited.append(succ)
-        sequence.push((succ, action))
-
-        if problem.isGoalState(succ) :
-            path = stackToList(sequence)
-            return path
-
-        successors = problem.getSuccessors(succ)
-        su = []
-        for successor, action, _ in successors:
-            if not visited.__contains__(successor):
-                su.append((successor, action))
-        if not su:
-            popTheSame(pushRec, sequence)
+        successors = problem.getSuccessors(currentState)
+        su =[]
+        for s,a,c in successors:
+            if not isVisited(states, s):
+                su.append((s,a,c))
         for e in su:
-            stack.push(e)
-            pushRec.push(e)
+            list = copy.deepcopy(states)
+            list.append(e)
+            queue.push(list)
+
+
 
 def popTheSame(s1, s2):
     e1 = s1.pop()
@@ -143,28 +140,27 @@ def breadthFirstSearch(problem):
 
     state = problem.getStartState()
     queue = util.Queue()
-    queue.push((state, None))
-
-    path = util.Queue()
-    path.push([(state, None)])
+    queue.push([(state, None, 0)])
 
     while not queue.isEmpty():
-        currentState, action = queue.pop()
+        states= queue.pop()
+        currentState, action, cost= states[-1]
         if problem.isGoalState(currentState):
-            actions = getActionsFromQueue(path)
-            return actions
+            acs = []
+            for s, a, c in states:
+                if a:
+                    acs.append(a)
+            return acs
 
         successors = problem.getSuccessors(currentState)
         su =[]
-        for s,a,_ in successors:
-            if not problem._visitedlist.__contains__(s):
-                su.append((s,a))
-        ele = path.pop()
+        for s,a,c in successors:
+            if not isVisited(states, s):
+                su.append((s,a,c))
         for e in su:
-            list = copy.deepcopy(ele)
+            list = copy.deepcopy(states)
             list.append(e)
-            path.push(list)
-            queue.push(e)
+            queue.push(list)
 
 def getActionsFromQueue(queue):
     last = queue.pop()
