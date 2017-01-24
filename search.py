@@ -109,8 +109,6 @@ def depthFirstSearch(problem):
             list.append(e)
             queue.push(list)
 
-
-
 def popTheSame(s1, s2):
     e1 = s1.pop()
     e2 = s2.pop()
@@ -145,6 +143,7 @@ def breadthFirstSearch(problem):
     while not queue.isEmpty():
         states= queue.pop()
         currentState, action, cost= states[-1]
+        print currentState
         if problem.isGoalState(currentState):
             acs = []
             for s, a, c in states:
