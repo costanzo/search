@@ -86,37 +86,9 @@ def depthFirstSearch(problem):
     "*** YOUR CODE HERE ***"
 
     state = problem.getStartState()
-    queue = util.Stack()
-    queue.push([(state, None, 0)])
-
-    while not queue.isEmpty():
-        states= queue.pop()
-        currentState, action, cost= states[-1]
-        if problem.isGoalState(currentState):
-            acs = []
-            for s, a, c in states:
-                if a:
-                    acs.append(a)
-            return acs
-
-        successors = problem.getSuccessors(currentState)
-        su =[]
-        for s,a,c in successors:
-            if not isVisited(states, s):
-                su.append((s,a,c))
-        for e in su:
-            list = copy.deepcopy(states)
-            list.append(e)
-            queue.push(list)
-
-def popTheSame(s1, s2):
-    e1 = s1.pop()
-    e2 = s2.pop()
-    while e1 == e2:
-        e1 = s1.pop()
-        e2 = s2.pop()
-    s1.push(e1)
-    s2.push(e2)
+    stack = util.Stack()
+    stack.push([(state, None, 0)])
+    return findPath(problem, stack, nullHeuristic, staQuePush)
 
 def stackToList(stack):
     acts = util.Stack()
@@ -135,31 +107,10 @@ def breadthFirstSearch(problem):
     [2nd Edition: p 73, 3rd Edition: p 82]
     """
     "*** YOUR CODE HERE ***"
-
     state = problem.getStartState()
     queue = util.Queue()
     queue.push([(state, None, 0)])
-
-    while not queue.isEmpty():
-        states= queue.pop()
-        currentState, action, cost= states[-1]
-        print currentState
-        if problem.isGoalState(currentState):
-            acs = []
-            for s, a, c in states:
-                if a:
-                    acs.append(a)
-            return acs
-
-        successors = problem.getSuccessors(currentState)
-        su =[]
-        for s,a,c in successors:
-            if not isVisited(states, s):
-                su.append((s,a,c))
-        for e in su:
-            list = copy.deepcopy(states)
-            list.append(e)
-            queue.push(list)
+    return findPath(problem, queue, nullHeuristic, staQuePush)
 
 def getActionsFromQueue(queue):
     last = queue.pop()
@@ -176,38 +127,13 @@ def uniformCostSearch(problem):
     queue = util.PriorityQueue()
     queue.push([(state, None, 0)], 0)
 
-    while not queue.isEmpty():
-        states= queue.pop()
-        currentState, action, cost = states[-1]
-        if problem.isGoalState(currentState):
-            acs = []
-            for s, a, c in states:
-                if a:
-                    acs.append(a)
-            return acs
-
-        successors = problem.getSuccessors(currentState)
-        su =[]
-        for s,a,c in successors:
-            if not isVisited(states, s):
-                su.append((s,a,c))
-        for e in su:
-            list = copy.deepcopy(states)
-            list.append(e)
-            cost = totalCost(list)
-            queue.push(list, cost)
+    return findPath(problem, queue, nullHeuristic, prioPush)
 
 def totalCost(list):
     cost = 0
     for s,a,c in list:
         cost += c
     return cost
-
-def isVisited(elements, state):
-    for su, ac, co in elements:
-        if su == state:
-            return True
-    return False
 
 def nullHeuristic(state, problem=None):
     """
@@ -222,29 +148,36 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     state = problem.getStartState()
     queue = util.PriorityQueue()
     queue.push([(state, None, 0)], 0)
+    return findPath(problem, queue, heuristic, prioPush)
 
-    while not queue.isEmpty():
-        states = queue.pop()
+def findPath(problem, path, heuristic, pushFuc):
+    state = problem.getStartState()
+    visited = [state]
+    while not path.isEmpty():
+        states = path.pop()
         currentState, action, cost = states[-1]
         if problem.isGoalState(currentState):
             acs = []
-            for s, a, c in states:
-                if a:
-                    acs.append(a)
+            for s, a, c in states[1:]:
+                acs.append(a)
             return acs
-
         successors = problem.getSuccessors(currentState)
         su = []
         for s, a, c in successors:
-            if not isVisited(states, s):
+            if not visited.__contains__(s):
+                visited.append(s)
                 su.append((s, a, c))
         for s,a,c in su:
             list = copy.deepcopy(states)
             list.append((s,a,c))
-            cost = totalCost(list)
-            incr = heuristic(s, problem)
-            queue.push(list, cost + incr)
+            pushFuc(path, list, heuristic, problem, s)
 
+def prioPush(path, list, heuristic, problem, s):
+    c = totalCost(list)+heuristic(s,problem)
+    path.push(list, c)
+
+def staQuePush(path, list, heuristic, problem, s):
+    path.push(list)
 
 # Abbreviations
 bfs = breadthFirstSearch
