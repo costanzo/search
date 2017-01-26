@@ -36,6 +36,7 @@ import time
 import search
 import searchAgents
 import copy
+import itertools
 
 class GoWestAgent(Agent):
     "An agent that goes West until it can't."
@@ -360,8 +361,6 @@ class MyState():
     def get(self):
         return self.pacPos, self.goals
 
-
-
 def cornersHeuristic(state, problem):
     """
     A heuristic for the CornersProblem that you defined.
@@ -379,7 +378,23 @@ def cornersHeuristic(state, problem):
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
     "*** YOUR CODE HERE ***"
-    return 0 # Default to trivial solution
+    goals = state.goals
+    pos = state.pacPos
+    minDis = 99999999
+    for tuple in itertools.permutations(goals):
+        l = list(tuple)
+        l.append(pos)
+        dis = calculateDis(l)
+        if minDis > dis:
+            minDis = dis
+    return minDis
+
+def calculateDis(list):
+    dis = 0
+    for i in range(len(list)-1):
+        dis += util.manhattanDistance(list[i], list[i+1])
+    return dis
+
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
