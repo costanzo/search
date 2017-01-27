@@ -380,10 +380,13 @@ def cornersHeuristic(state, problem):
     "*** YOUR CODE HERE ***"
     goals = state.goals
     pos = state.pacPos
+    return smallTSP(pos, goals)
+
+def smallTSP(start, goals):
     minDis = 99999999
     for tuple in itertools.permutations(goals):
         l = list(tuple)
-        l.append(pos)
+        l.append(start)
         dis = calculateDis(l)
         if minDis > dis:
             minDis = dis
@@ -485,7 +488,24 @@ def foodHeuristic(state, problem):
     """
     position, foodGrid = state
     "*** YOUR CODE HERE ***"
-    return 0
+    goals = copy.deepcopy(foodGrid.asList())
+    return smallTSP(position, goals)
+
+def greedy(start, list):
+    minDis = 999999
+    end = start
+    if not list:
+        return 0
+    if len(list) == 1:
+        return util.manhattanDistance(start, list[0])
+    for s in list:
+        dis = util.manhattanDistance(start, s)
+        if dis < minDis:
+            minDis = dis
+            end = s
+    list.remove(end)
+    otherDis = greedy(end, list)
+    return minDis+otherDis
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
@@ -513,7 +533,9 @@ class ClosestDotSearchAgent(SearchAgent):
         problem = AnyFoodSearchProblem(gameState)
 
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        import search
+        return search.breadthFirstSearch(problem)
+
 
 class AnyFoodSearchProblem(PositionSearchProblem):
     """
@@ -549,7 +571,7 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         x,y = state
 
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return self.food[x][y]
 
 ##################
 # Mini-contest 1 #
